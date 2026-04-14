@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Roster">
+<meta name="theme-color" content="#111111">
+<title>🗓 GJ 06 Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:   #111111;
+    --dark:    #1E1E1E;
+    --mid:     #444444;
+    --muted:   #888888;
+    --border:  #E0E0E0;
+    --cream:   #F5F5F5;
+    --white:   #FFFFFF;
+    --off:     #E8E8E8;
+    --off-txt: #777777;
+    --green:   #2D7A4F;
+    --green-bg:#EAF5EE;
+    --red:     #C0392B;
+    --red-bg:  #FDECEA;
+    --accent:  #111111;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--black);
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--black);
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  }
+  .topbar-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brand-logo {
+    height: 32px; width: auto;
+    background: #fff; border-radius: 7px;
+    padding: 2px 6px; object-fit: contain;
+  }
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 900; color: #fff;
+  }
+  .week-nav {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.12); border: none;
+    color: #fff; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .nav-btn:active { background: rgba(255,255,255,0.25); }
+  .week-label {
+    font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85);
+    letter-spacing: 0.3px; white-space: nowrap;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; background: var(--black);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .tab {
+    flex: 1; text-align: center;
+    padding: 9px 4px 11px;
+    font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+  }
+  .tab.active { color: #fff; border-bottom-color: #fff; }
+  .tab-icon { display: block; font-size: 17px; margin-bottom: 2px; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding-bottom: 100px; }
+  .page.active { display: block; }
+
+  /* ── ROSTER PAGE ── */
+  .roster-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 0 8px;
+  }
+
+  table.roster {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  table.roster th,
+  table.roster td {
+    border: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  /* Name column */
+  table.roster .col-name {
+    width: 72px; min-width: 72px;
+    position: sticky; left: 0; z-index: 2;
+    background: var(--black);
+  }
+
+  table.roster th.col-name {
+    background: var(--black);
+    color: rgba(255,255,255,0.5);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 10px 8px;
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  table.roster td.col-name {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-weight: 700;
+    padding: 0 8px;
+    height: 52px;
+    border-color: rgba(255,255,255,0.08);
+    text-align: left;
+  }
+
+  /* Day columns */
+  table.roster th.col-day {
+    width: 90px; min-width: 90px;
+    background: var(--black);
+    color: #fff;
+    padding: 10px 6px;
+    text-align: center;
+    border-color: rgba(255,255,255,0.1);
+  }
+  .day-name {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    display: block;
+  }
+  .day-date {
+    font-size: 10px; color: rgba(255,255,255,0.5);
+    font-weight: 400; display: block; margin-top: 1px;
+  }
+  th.col-day.today-col .day-name { color: #FFD700; }
+  th.col-day.today-col .day-date { color: rgba(255,215,0,0.7); }
+
+  table.roster td.col-day {
+    padding: 4px;
+    height: 52px;
+    background: var(--white);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  table.roster td.col-day:active { background: #F0F0F0; }
+
+  /* Cell content */
+  .cell-inner {
+    height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    font-size: 11px; font-weight: 600;
+    line-height: 1.3; text-align: center;
+    padding: 4px;
+  }
+  .cell-empty {
+    color: #CCCCCC;
+    font-size: 18px; font-weight: 300;
+  }
+  .cell-off {
+    background: var(--off); color: var(--off-txt);
+    letter-spacing: 0.5px;
+  }
+  .cell-shift {
+    background: #EFF8F3; color: #1A5C36;
+    flex-direction: column;
+  }
+  .cell-shift .shift-start { font-size: 12px; font-weight: 700; }
+  .cell-shift .shift-end   { font-size: 10px; font-weight: 500; color: #2D7A4F; }
+  .cell-delivery { background: #FFF3E0; color: #B45309; }
+  .cell-bake     { background: #FEF9EE; color: #92400E; }
+  .cell-training { background: #EDE9FE; color: #5B21B6; flex-direction: column; }
+  .cell-training .shift-start { font-size: 11px; font-weight: 700; }
+  .cell-training .shift-end   { font-size: 10px; font-weight: 500; color: #6D28D9; }
+  .cell-bakery-yc { background: #FCE7F3; color: #9D174D; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    padding: 16px 16px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--black);
+  }
+
+  /* ── EMPLOYEE CARDS ── */
+  .emp-list {
+    padding: 0 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .emp-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .emp-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--black); color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .emp-info { flex: 1; min-width: 0; }
+  .emp-name { font-size: 15px; font-weight: 600; color: var(--black); }
+  .emp-role { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .emp-arrow { font-size: 20px; color: var(--muted); }
+
+  /* ── PRINT BTN ── */
+  .print-fab {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    right: 20px;
+    z-index: 200;
+    background: var(--black); color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 14px 22px;
+    border-radius: 50px; border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 7px;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .print-fab:active { transform: scale(0.96); box-shadow: 0 3px 12px rgba(0,0,0,0.15); }
+
+  /* ── MODAL / SHEET ── */
+  .sheet-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 800;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .sheet-overlay.open { display: flex; }
+
+  .sheet {
+    background: var(--white);
+    width: 100%; max-width: 480px;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    font-family: 'DM Sans', sans-serif;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .sheet-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-weight: 700; color: var(--black);
+    margin-bottom: 4px;
+  }
+  .sheet-sub {
+    font-size: 13px; color: var(--muted); margin-bottom: 20px;
+  }
+
+  /* Preset buttons */
+  .presets {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 16px;
+  }
+  .preset-btn {
+    padding: 13px 10px; border-radius: 12px;
+    border: 1.5px solid var(--border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; text-align: center;
+    background: var(--white); color: var(--black);
+    transition: all .15s;
+  }
+  .preset-btn:active { opacity: 0.7; }
+  .preset-btn.p-off      { background: var(--off);    border-color: #CCC; color: var(--off-txt); }
+  .preset-btn.p-delivery { background: #FFF3E0; border-color: #FCD9A0; color: #B45309; }
+  .preset-btn.p-bake     { background: #FEF9EE; border-color: #F5E0A0; color: #92400E; }
+  .preset-btn.p-bakery   { background: #FCE7F3; border-color: #F9BADB; color: #9D174D; }
+
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+  .divider span { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+
+  /* Shift / Training section */
+  .shift-section { margin-bottom: 16px; }
+  .shift-label {
+    font-size: 12px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+    display: block;
+  }
+  .time-row {
+    display: flex; gap: 10px; margin-bottom: 10px;
+  }
+  .time-group { flex: 1; }
+  .time-group label {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    display: block; margin-bottom: 5px;
+  }
+  .time-input {
+    width: 100%; padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--black); background: var(--white);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .time-input:focus { border-color: var(--black); }
+
+  /* Training type */
+  .training-btn {
+    width: 100%; padding: 13px;
+    border-radius: 12px; border: 1.5px solid #C4B5FD;
+    background: #EDE9FE; color: #5B21B6;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 16px;
+  }
+  .training-btn:active { opacity: 0.7; }
+
+  /* Save / Clear row */
+  .sheet-actions { display: flex; gap: 10px; }
+  .btn-save {
+    flex: 1; padding: 14px;
+    background: var(--black); color: #fff;
+    border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-save:active { opacity: 0.8; }
+  .btn-clear {
+    padding: 14px 18px;
+    background: var(--red-bg); color: var(--red);
+    border: 1.5px solid #F5C6C2;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-clear:active { opacity: 0.8; }
+
+  /* ── EMP MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 800;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    width: 100%; max-width: 480px;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-weight: 700; color: var(--black);
+    margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-close {
+    background: var(--border); border: none;
+    border-radius: 50%; width: 30px; height: 30px;
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--black);
+  }
+  .field-label {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: block; margin-bottom: 5px;
+  }
+  .field-input {
+    width: 100%; padding: 12px 14px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-size: 16px; font-family: 'DM Sans', sans-serif;
+    color: var(--black); background: #fff; outline: none;
+    margin-bottom: 14px;
+  }
+  .field-input:focus { border-color: var(--black); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .btn-delete {
+    padding: 14px 18px;
+    background: var(--red-bg); color: var(--red);
+    border: 1.5px solid #F5C6C2;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--black); color: #fff;
+    padding: 10px 20px; border-radius: 50px;
+    font-size: 13px; font-weight: 500;
+    z-index: 999; opacity: 0; transition: opacity .3s;
+    white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea {
+      position: fixed; inset: 0;
+      background: #fff;
+      padding: 16mm 12mm;
+      font-family: Arial, sans-serif;
+    }
+    .print-header {
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8mm;
+    }
+    .print-logo {
+      width: 38mm;
+    }
+    .print-meta {
+      text-align: center;
+    }
+    .print-meta .roster-for {
+      border: 2px solid #000;
+      padding: 4px 8px;
+      font-size: 14pt;
+      font-weight: bold;
+      margin-bottom: 2mm;
+      display: inline-block;
+    }
+    .print-meta .week-range {
+      border: 2px solid #000;
+      padding: 4px 8px;
+      font-size: 13pt;
+      font-weight: bold;
+      display: inline-block;
+    }
+    table.print-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+    }
+    table.print-table th,
+    table.print-table td {
+      border: 1.5px solid #000;
+      padding: 6px 5px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    table.print-table th {
+      background: #000;
+      color: #fff;
+      font-weight: bold;
+      font-size: 9pt;
+    }
+    table.print-table td.name-col {
+      text-align: left;
+      font-weight: bold;
+      font-size: 10pt;
+      white-space: nowrap;
+    }
+    table.print-table td.cell-val {
+      font-size: 8pt;
+      font-weight: 600;
+    }
+    @page { size: A4 landscape; margin: 0; }
+  }
+
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<!-- PRINT AREA (hidden on screen) -->
+<div id="printArea" style="display:none">
+  <div class="print-header">
+    <div class="print-logo">
+      <!-- GJ06 logo placeholder -->
+      <div style="font-weight:900;font-size:22pt;line-height:1">GJ 06</div>
+      <div style="font-size:8pt;color:#555">A magical 2D cafe &amp; bakehouse</div>
+    </div>
+    <div class="print-meta">
+      <div class="roster-for">Roaster for;</div><br>
+      <div class="week-range" id="printWeekRange"></div>
+    </div>
+    <div style="width:38mm"></div>
+  </div>
+  <table class="print-table" id="printTable"></table>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-name">GJ 06 Roster</span>
+    </div>
+    <div class="week-nav">
+      <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button class="nav-btn" onclick="changeWeek(1)">›</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('roster')" id="tab-roster">
+      <span class="tab-icon">📅</span>Roster
+    </div>
+    <div class="tab" onclick="showPage('staff')" id="tab-staff">
+      <span class="tab-icon">👥</span>Staff
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: ROSTER ══════ -->
+<div class="page active" id="page-roster">
+  <div class="roster-scroll">
+    <table class="roster" id="rosterTable"></table>
+  </div>
+  <button class="print-fab" onclick="doPrint()">🖨 Print Roster</button>
+</div>
+
+<!-- ══════ PAGE: STAFF ══════ -->
+<div class="page" id="page-staff">
+  <div class="section-header">
+    <span class="section-title">Staff</span>
+    <button onclick="openAddEmp()" style="
+      background:var(--black);color:#fff;border:none;
+      border-radius:20px;padding:7px 16px;
+      font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;gap:5px
+    ">＋ Add</button>
+  </div>
+  <div class="emp-list" id="empList"></div>
+</div>
+
+<!-- ══════ CELL EDIT SHEET ══════ -->
+<div class="sheet-overlay" id="shiftSheet" onclick="handleSheetOverlay(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheetTitle"></div>
+    <div class="sheet-sub" id="sheetSub"></div>
+
+    <!-- Presets -->
+    <div class="presets">
+      <button class="preset-btn p-off"      onclick="applyPreset('OFF')">✕ OFF</button>
+      <button class="preset-btn p-delivery" onclick="applyPreset('DELIVERY')">🚚 Delivery</button>
+      <button class="preset-btn p-bake"     onclick="applyPreset('BAKE')">🍞 Bake</button>
+      <button class="preset-btn p-bakery"   onclick="applyPreset('BAKERY YC')">☕ Bakery YC</button>
+    </div>
+
+    <div class="divider"><hr><span>OR SET TIME</span><hr></div>
+
+    <!-- Regular shift -->
+    <div class="shift-section">
+      <span class="shift-label">Regular Shift</span>
+      <div class="time-row">
+        <div class="time-group">
+          <label>Start</label>
+          <input class="time-input" type="time" id="shiftStart" value="09:00">
+        </div>
+        <div class="time-group">
+          <label>End</label>
+          <input class="time-input" type="time" id="shiftEnd" value="17:00">
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><hr><span>OR TRAINING</span><hr></div>
+
+    <!-- Training shift -->
+    <div class="shift-section">
+      <span class="shift-label">Training</span>
+      <div class="time-row">
+        <div class="time-group">
+          <label>Start</label>
+          <input class="time-input" type="time" id="trainStart" value="09:00">
+        </div>
+        <div class="time-group">
+          <label>End</label>
+          <input class="time-input" type="time" id="trainEnd" value="17:00">
+        </div>
+      </div>
+      <button class="training-btn" onclick="applyTraining()">🎓 Save as Training</button>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-save" onclick="applyShift()">Save Shift</button>
+      <button class="btn-clear" onclick="clearCell()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ EMP MODAL ══════ -->
+<div class="modal-overlay" id="empModal" onclick="handleEmpOverlay(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="empModalTitle">Add Staff</span>
+      <button class="modal-close" onclick="closeEmpModal()">✕</button>
+    </div>
+    <input type="hidden" id="empEditId">
+    <label class="field-label">Full Name *</label>
+    <input class="field-input" type="text" id="empName" placeholder="e.g. KHUSHI">
+    <label class="field-label">Role (optional)</label>
+    <input class="field-input" type="text" id="empRole" placeholder="e.g. Barista">
+    <div class="modal-actions">
+      <button class="btn-delete" id="empDeleteBtn" onclick="deleteEmp()" style="display:none">🗑 Delete</button>
+      <button class="btn-save" style="flex:1" onclick="saveEmp()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+const _mem = {};
+const S = {
+  get(k)    { try { return localStorage.getItem(k); }    catch(e) { return _mem[k] ?? null; } },
+  set(k, v) { try { localStorage.setItem(k, v); }        catch(e) { _mem[k] = v; } },
+  del(k)    { try { localStorage.removeItem(k); }        catch(e) { delete _mem[k]; } }
+};
+
+// ═══════════════════════════════════════════════════════
+// EMPLOYEES
+// ═══════════════════════════════════════════════════════
+const DEFAULT_EMPLOYEES = [
+  {id:1,  name:'AKA',      role:''},
+  {id:2,  name:'HIM',      role:''},
+  {id:3,  name:'JAIMIN',   role:''},
+  {id:4,  name:'KHUSHI',   role:''},
+  {id:5,  name:'KUSHAL',   role:'Delivery'},
+  {id:6,  name:'PRATIVA',  role:''},
+  {id:7,  name:'REEVE',    role:''},
+  {id:8,  name:'SWETA',    role:''},
+  {id:9,  name:'VARSHA',   role:''},
+  {id:10, name:'YASH H',   role:''},
+  {id:11, name:'YASH P',   role:''},
+  {id:12, name:'MISHILA',  role:'Training'},
+];
+
+const EMP_KEY   = 'roster_employees_v1';
+const SHIFT_KEY = 'roster_shifts_v1';  // { "YYYY-MM-DD_empId": { type, start, end } }
+
+let employees = [];
+let shifts = {};  // key: `${dateStr}_${empId}` → { type:'shift'|'OFF'|'DELIVERY'|'BAKE'|'BAKERY YC'|'TRAINING', start, end }
+
+function loadData() {
+  try {
+    const e = S.get(EMP_KEY);
+    employees = e ? JSON.parse(e) : JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES));
+  } catch { employees = JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES)); }
+
+  try {
+    const s = S.get(SHIFT_KEY);
+    shifts = s ? JSON.parse(s) : {};
+  } catch { shifts = {}; }
+}
+
+function saveEmployees() { S.set(EMP_KEY, JSON.stringify(employees)); }
+function saveShifts()    { S.set(SHIFT_KEY, JSON.stringify(shifts)); }
+
+function nextEmpId() {
+  return employees.length ? Math.max(...employees.map(e => e.id)) + 1 : 1;
+}
+
+// ═══════════════════════════════════════════════════════
+// WEEK LOGIC
+// ═══════════════════════════════════════════════════════
+let weekOffset = 0;  // 0 = current week
+
+function getMondayOf(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun, 1=Mon...
+  const diff = (day === 0) ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function getWeekDates() {
+  const today = new Date();
+  const monday = getMondayOf(today);
+  monday.setDate(monday.getDate() + weekOffset * 7);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+function fmtDate(d) {
+  return d.toISOString().slice(0, 10);  // YYYY-MM-DD
+}
+
+function fmtShort(d) {
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
+
+function fmtWeekRange(days) {
+  const s = days[0].toLocaleDateString('en-AU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+  const e = days[6].toLocaleDateString('en-AU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+  return `WEEK ${s} - ${e}`;
+}
+
+const DAY_NAMES = ['MON','TUE','WED','THUR','FRI','SAT','SUNDAY'];
+const TODAY_STR = fmtDate(new Date());
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  buildRosterTable();
+  updateWeekLabel();
+}
+
+function updateWeekLabel() {
+  const days = getWeekDates();
+  const s = days[0].toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+  const e = days[6].toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+  document.getElementById('weekLabel').textContent = `${s} – ${e}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// FORMAT TIME for display
+// ═══════════════════════════════════════════════════════
+function fmt12(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h < 12 ? 'A' : 'P';
+  const hr = h % 12 || 12;
+  return m === 0 ? `${hr}${ampm}` : `${hr}:${String(m).padStart(2,'0')}${ampm}`;
+}
+
+function shiftDisplay(key) {
+  const s = shifts[key];
+  if (!s) return null;
+  return s;
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD ROSTER TABLE
+// ═══════════════════════════════════════════════════════
+function buildRosterTable() {
+  const days = getWeekDates();
+  const table = document.getElementById('rosterTable');
+
+  // Header
+  let head = '<thead><tr><th class="col-name">NAME</th>';
+  days.forEach((d, i) => {
+    const isToday = fmtDate(d) === TODAY_STR;
+    head += `<th class="col-day${isToday ? ' today-col' : ''}">
+      <span class="day-name">${DAY_NAMES[i]}</span>
+      <span class="day-date">${fmtShort(d)}</span>
+    </th>`;
+  });
+  head += '</tr></thead>';
+
+  // Body
+  let body = '<tbody>';
+  employees.forEach(emp => {
+    body += `<tr><td class="col-name">${emp.name}</td>`;
+    days.forEach(d => {
+      const dateStr = fmtDate(d);
+      const key = `${dateStr}_${emp.id}`;
+      const s = shifts[key];
+      let cellHtml = '';
+
+      if (!s) {
+        cellHtml = `<div class="cell-inner cell-empty">+</div>`;
+      } else if (s.type === 'OFF') {
+        cellHtml = `<div class="cell-inner cell-off">OFF</div>`;
+      } else if (s.type === 'DELIVERY') {
+        cellHtml = `<div class="cell-inner cell-delivery">🚚 DELIVERY</div>`;
+      } else if (s.type === 'BAKE') {
+        cellHtml = `<div class="cell-inner cell-bake">🍞 BAKE</div>`;
+      } else if (s.type === 'BAKERY YC') {
+        cellHtml = `<div class="cell-inner cell-bakery-yc">☕ BAKERY YC</div>`;
+      } else if (s.type === 'TRAINING') {
+        cellHtml = `<div class="cell-inner cell-training">
+          <span class="shift-start">🎓 TRAINING</span>
+          <span class="shift-end">${fmt12(s.start)}–${fmt12(s.end)}</span>
+        </div>`;
+      } else if (s.type === 'shift') {
+        cellHtml = `<div class="cell-inner cell-shift">
+          <span class="shift-start">${fmt12(s.start)}</span>
+          <span class="shift-end">${fmt12(s.end)}</span>
+        </div>`;
+      }
+
+      body += `<td class="col-day" onclick="openCell('${key}','${emp.name}','${dateStr}')">${cellHtml}</td>`;
+    });
+    body += '</tr>';
+  });
+  body += '</tbody>';
+
+  table.innerHTML = head + body;
+}
+
+// ═══════════════════════════════════════════════════════
+// CELL EDITING
+// ═══════════════════════════════════════════════════════
+let activeKey = null;
+
+function openCell(key, empName, dateStr) {
+  activeKey = key;
+
+  const d = new Date(dateStr + 'T00:00:00');
+  const dayLabel = d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  document.getElementById('sheetTitle').textContent = empName;
+  document.getElementById('sheetSub').textContent = dayLabel;
+
+  // Pre-fill times if existing shift
+  const s = shifts[key];
+  if (s && s.start) document.getElementById('shiftStart').value = s.start;
+  if (s && s.end)   document.getElementById('shiftEnd').value   = s.end;
+  if (s && s.start) document.getElementById('trainStart').value = s.start;
+  if (s && s.end)   document.getElementById('trainEnd').value   = s.end;
+
+  document.getElementById('shiftSheet').classList.add('open');
+}
+
+function closeSheet() {
+  document.getElementById('shiftSheet').classList.remove('open');
+  activeKey = null;
+}
+
+function handleSheetOverlay(e) {
+  if (e.target === document.getElementById('shiftSheet')) closeSheet();
+}
+
+function applyPreset(type) {
+  if (!activeKey) return;
+  shifts[activeKey] = { type };
+  saveShifts();
+  buildRosterTable();
+  closeSheet();
+}
+
+function applyShift() {
+  if (!activeKey) return;
+  const start = document.getElementById('shiftStart').value;
+  const end   = document.getElementById('shiftEnd').value;
+  if (!start || !end) { showToast('Please set start and end time'); return; }
+  shifts[activeKey] = { type: 'shift', start, end };
+  saveShifts();
+  buildRosterTable();
+  closeSheet();
+}
+
+function applyTraining() {
+  if (!activeKey) return;
+  const start = document.getElementById('trainStart').value;
+  const end   = document.getElementById('trainEnd').value;
+  if (!start || !end) { showToast('Please set start and end time'); return; }
+  shifts[activeKey] = { type: 'TRAINING', start, end };
+  saveShifts();
+  buildRosterTable();
+  closeSheet();
+}
+
+function clearCell() {
+  if (!activeKey) return;
+  delete shifts[activeKey];
+  saveShifts();
+  buildRosterTable();
+  closeSheet();
+}
+
+// ═══════════════════════════════════════════════════════
+// STAFF PAGE
+// ═══════════════════════════════════════════════════════
+function buildStaffPage() {
+  const list = document.getElementById('empList');
+  list.innerHTML = employees.map(emp => `
+    <div class="emp-card" onclick="openEditEmp(${emp.id})">
+      <div class="emp-avatar">${emp.name.charAt(0)}</div>
+      <div class="emp-info">
+        <div class="emp-name">${emp.name}</div>
+        <div class="emp-role">${emp.role || 'Staff'}</div>
+      </div>
+      <div class="emp-arrow">›</div>
+    </div>
+  `).join('');
+}
+
+function openAddEmp() {
+  document.getElementById('empModalTitle').textContent = 'Add Staff';
+  document.getElementById('empEditId').value = '';
+  document.getElementById('empName').value = '';
+  document.getElementById('empRole').value = '';
+  document.getElementById('empDeleteBtn').style.display = 'none';
+  document.getElementById('empModal').classList.add('open');
+  setTimeout(() => document.getElementById('empName').focus(), 300);
+}
+
+function openEditEmp(id) {
+  const emp = employees.find(e => e.id === id);
+  if (!emp) return;
+  document.getElementById('empModalTitle').textContent = 'Edit Staff';
+  document.getElementById('empEditId').value = id;
+  document.getElementById('empName').value = emp.name;
+  document.getElementById('empRole').value = emp.role || '';
+  document.getElementById('empDeleteBtn').style.display = 'block';
+  document.getElementById('empModal').classList.add('open');
+}
+
+function closeEmpModal() {
+  document.getElementById('empModal').classList.remove('open');
+}
+
+function handleEmpOverlay(e) {
+  if (e.target === document.getElementById('empModal')) closeEmpModal();
+}
+
+function saveEmp() {
+  const name = document.getElementById('empName').value.trim();
+  if (!name) { showToast('Name is required'); return; }
+  const role  = document.getElementById('empRole').value.trim();
+  const editId = parseInt(document.getElementById('empEditId').value);
+
+  if (editId) {
+    const emp = employees.find(e => e.id === editId);
+    if (emp) { emp.name = name; emp.role = role; }
+    showToast('Updated ✓');
+  } else {
+    employees.push({ id: nextEmpId(), name, role });
+    showToast('Added ✓');
+  }
+  saveEmployees();
+  closeEmpModal();
+  buildStaffPage();
+  buildRosterTable();
+}
+
+function deleteEmp() {
+  const editId = parseInt(document.getElementById('empEditId').value);
+  if (!editId) return;
+  const emp = employees.find(e => e.id === editId);
+  if (!confirm(`Remove "${emp ? emp.name : 'this person'}"?`)) return;
+  employees = employees.filter(e => e.id !== editId);
+  // Clean their shifts
+  Object.keys(shifts).forEach(k => { if (k.endsWith(`_${editId}`)) delete shifts[k]; });
+  saveEmployees();
+  saveShifts();
+  closeEmpModal();
+  buildStaffPage();
+  buildRosterTable();
+  showToast('Removed');
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'staff') buildStaffPage();
+}
+
+// ═══════════════════════════════════════════════════════
+// PRINT
+// ═══════════════════════════════════════════════════════
+function doPrint() {
+  const days = getWeekDates();
+
+  // Week range label
+  document.getElementById('printWeekRange').textContent = fmtWeekRange(days);
+
+  // Build print table
+  const table = document.getElementById('printTable');
+  const colW = Math.floor(100 / (DAY_NAMES.length + 1));
+
+  let html = '<thead><tr><th style="width:12%;text-align:left">NAME</th>';
+  DAY_NAMES.forEach((d, i) => {
+    html += `<th style="width:${colW}%">${d}<br><span style="font-weight:400;font-size:7pt">${fmtShort(days[i])}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  employees.forEach(emp => {
+    html += `<tr><td class="name-col">${emp.name}</td>`;
+    days.forEach(d => {
+      const key = `${fmtDate(d)}_${emp.id}`;
+      const s = shifts[key];
+      let val = '';
+      if (!s) {
+        val = '';
+      } else if (s.type === 'shift') {
+        val = `${fmt12(s.start)}-${fmt12(s.end)}`;
+      } else if (s.type === 'TRAINING') {
+        val = `${fmt12(s.start)}-${fmt12(s.end)}<br>TRAINING`;
+      } else {
+        val = s.type;
+      }
+      html += `<td class="cell-val">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  // Show print area, print, hide
+  const pa = document.getElementById('printArea');
+  pa.style.display = 'block';
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { pa.style.display = 'none'; }, 500);
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+loadData();
+updateWeekLabel();
+buildRosterTable();
+buildStaffPage();
+</script>
+</body>
+</html>
