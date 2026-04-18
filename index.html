@@ -601,6 +601,7 @@
     <table class="roster" id="rosterTable"></table>
   </div>
   <div style="position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);right:16px;z-index:200;display:flex;gap:10px">
+      <button class="print-fab" style="position:static;box-shadow:none" onclick="copyToNextWeek()">📋 Copy</button>
     <button class="print-fab" style="position:static;box-shadow:none" onclick="doPrint()">🖨 Print</button>
     <button class="print-fab" style="position:static;box-shadow:none;background:#1a1a2e" onclick="savePDF()" id="pdfBtn">📄 Save PDF</button>
   </div>
@@ -1407,7 +1408,24 @@ function savePDF() {
     btn.disabled = false;
   }
 }
-
+function copyToNextWeek() {
+  const days = getWeekDates();
+  let copied = 0;
+  days.forEach(d => {
+    const currentDate = fmtDate(d);
+    const nextDate = fmtDate(new Date(d.getTime() + 7 * 24 * 60 * 60 * 1000));
+    employees.forEach(emp => {
+      const currentKey = `${currentDate}_${emp.id}`;
+      const nextKey = `${nextDate}_${emp.id}`;
+      if (shifts[currentKey]) {
+        shifts[nextKey] = { ...shifts[currentKey] };
+        copied++;
+      }
+    });
+  });
+  saveShifts();
+  showToast(`Copied ${copied} shifts to next week ✓`);
+}
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
