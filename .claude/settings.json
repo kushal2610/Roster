@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start \"\" \"d:\\\\roster\\\\Roster\\\\index.html\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

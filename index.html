@@ -182,18 +182,26 @@ table.roster td.col-day:active{background:#F0F0F0}
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheetTitle"></div>
     <div class="sheet-sub" id="sheetSub"></div>
+    <div id="existingShifts"></div>
     <div class="presets">
       <button class="preset-btn p-off" onclick="applyPreset('OFF')">&#10005; OFF</button>
       <button class="preset-btn p-del" onclick="applyPreset('DELIVERY')">&#128666; Delivery</button>
       <button class="preset-btn p-bake" onclick="applyPreset('BAKE')">&#127838; Bake</button>
       <button class="preset-btn p-bkyc" onclick="applyPreset('BAKERY YC')">&#9749; Bakery YC</button>
     </div>
-    <div class="divider"><hr><span>OR SET TIME</span><hr></div>
+    <div class="divider"><hr><span>OR ADD A SHIFT</span><hr></div>
     <div class="shift-section"><span class="shift-label">Regular Shift</span>
+      <div class="time-group" style="margin-bottom:10px"><label>Category</label>
+        <select class="time-input" id="shiftCategory">
+          <option value="CAFE">Cafe</option>
+          <option value="BAKERY">Bakery</option>
+        </select>
+      </div>
       <div class="time-row">
         <div class="time-group"><label>Start</label><input class="time-input" type="time" id="shiftStart" value="09:00"></div>
         <div class="time-group"><label>End</label><input class="time-input" type="time" id="shiftEnd" value="17:00"></div>
       </div>
+      <button class="btn-save" style="width:100%" onclick="applyShift()">&#10133; Add Shift</button>
     </div>
     <div class="divider"><hr><span>OR TRAINING</span><hr></div>
     <div class="shift-section"><span class="shift-label">Training</span>
@@ -204,8 +212,8 @@ table.roster td.col-day:active{background:#F0F0F0}
       <button class="training-btn" onclick="applyTraining()">&#127891; Save as Training</button>
     </div>
     <div class="sheet-actions">
-      <button class="btn-save" onclick="applyShift()">Save Shift</button>
-      <button class="btn-clear" onclick="clearCell()">Clear</button>
+      <button class="btn-save" style="flex:1" onclick="closeSheet()">Done</button>
+      <button class="btn-clear" onclick="clearCell()">Clear All</button>
     </div>
   </div>
 </div>
@@ -284,9 +292,21 @@ function shiftColor(type){
   const map={'shift':'#1A5C36','OFF':'#777','DELIVERY':'#B45309','BAKE':'#92400E','BAKERY YC':'#9D174D','TRAINING':'#5B21B6'};
   return map[type]||'#333';
 }
+function catLabel(s){return s.category==='BAKERY'?'Bakery ':''}
+function entryBg(s){if(s.type==='shift')return s.category==='BAKERY'?'#FCE7F3':'#EFF8F3';return shiftBg(s.type)}
+function entryColor(s){if(s.type==='shift')return s.category==='BAKERY'?'#9D174D':'#1A5C36';return shiftColor(s.type)}
+function shiftDesc(s){
+  if(s.type==='shift')return`${catLabel(s)}${fmt12(s.start)}\u2013${fmt12(s.end)}`;
+  if(s.type==='TRAINING')return`Training ${fmt12(s.start)}\u2013${fmt12(s.end)}`;
+  if(s.type==='DELIVERY')return'Delivery';
+  if(s.type==='BAKE')return'Bake';
+  if(s.type==='BAKERY YC')return'Bakery YC';
+  if(s.type==='OFF')return'Off';
+  return s.type;
+}
 function renderChip(s){
-  const c=shiftColor(s.type);
-  if(s.type==='shift')return`<span style="color:${c};font-size:11px;font-weight:700">${fmt12(s.start)}\u2013${fmt12(s.end)}</span>`;
+  const c=entryColor(s);
+  if(s.type==='shift')return`<span style="color:${c};font-size:11px;font-weight:700">${catLabel(s)}${fmt12(s.start)}\u2013${fmt12(s.end)}</span>`;
   if(s.type==='TRAINING')return`<span style="color:${c};font-size:10px;font-weight:600">TRN ${fmt12(s.start)}\u2013${fmt12(s.end)}</span>`;
   if(s.type==='DELIVERY')return`<span style="color:${c};font-size:10px;font-weight:600">DEL</span>`;
   if(s.type==='BAKE')return`<span style="color:${c};font-size:10px;font-weight:600">BAKE</span>`;
@@ -308,7 +328,7 @@ function buildRoster(){
       if(!sArr.length){
         cell='<div class="cell-inner cell-empty">+</div>';
       } else {
-        const bg=shiftBg(sArr[0].type);
+        const bg=entryBg(sArr[0]);
         cell=`<div class="cell-inner" style="background:${bg};border-radius:8px">${sArr.map(s=>renderChip(s)).join('')}</div>`;
       }
       h+=`<td class="col-day" onclick="openCell('${key}','${emp.name}','${fd(d)}')">${cell}</td>`;
@@ -321,35 +341,56 @@ function buildRoster(){
 let activeKey=null;
 function openCell(key,name,ds){
   activeKey=key;
-  const d=new Date(ds+'T00:00:00'),ex=getShifts(key),cur=ex[0]||null;
+  const d=new Date(ds+'T00:00:00');
   document.getElementById('sheetTitle').textContent=name;
   document.getElementById('sheetSub').textContent=
     d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
-  const curShift=cur&&cur.type==='shift'?cur:null;
-  const curTrain=cur&&cur.type==='TRAINING'?cur:null;
-  document.getElementById('shiftStart').value=curShift?curShift.start:'09:00';
-  document.getElementById('shiftEnd').value=curShift?curShift.end:'17:00';
-  document.getElementById('trainStart').value=curTrain?curTrain.start:'09:00';
-  document.getElementById('trainEnd').value=curTrain?curTrain.end:'17:00';
+  document.getElementById('shiftCategory').value='CAFE';
+  document.getElementById('shiftStart').value='09:00';
+  document.getElementById('shiftEnd').value='17:00';
+  document.getElementById('trainStart').value='09:00';
+  document.getElementById('trainEnd').value='17:00';
+  renderExistingShifts();
   document.getElementById('shiftSheet').classList.add('open');
 }
 function closeSheet(){document.getElementById('shiftSheet').classList.remove('open');activeKey=null}
 
+function renderExistingShifts(){
+  const el=document.getElementById('existingShifts'),ex=activeKey?getShifts(activeKey):[];
+  if(!ex.length){el.innerHTML='';return}
+  el.innerHTML='<span class="shift-label" style="margin-bottom:8px;display:block">Current Shifts</span>'+
+    ex.map((s,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:${entryBg(s)};border-radius:10px;padding:9px 12px;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:600;color:${entryColor(s)}">${shiftDesc(s)}</span>
+      <button onclick="deleteShiftAt(${i})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0 4px">&#10005;</button>
+    </div>`).join('');
+}
+function deleteShiftAt(i){
+  if(!activeKey)return;
+  const ex=getShifts(activeKey);
+  ex.splice(i,1);
+  if(ex.length)shifts[activeKey]=ex;else delete shifts[activeKey];
+  saveShifts();buildRoster();buildOverview();renderExistingShifts();showToast('Shift removed');
+}
+
 function applyPreset(type){
   if(!activeKey)return;
-  shifts[activeKey]=[{type}];saveShifts();buildRoster();buildOverview();closeSheet();
+  const ex=getShifts(activeKey);ex.push({type});shifts[activeKey]=ex;
+  saveShifts();buildRoster();buildOverview();closeSheet();
 }
 function applyShift(){
   if(!activeKey)return;
+  const category=document.getElementById('shiftCategory').value;
   const start=document.getElementById('shiftStart').value,end=document.getElementById('shiftEnd').value;
   if(!start||!end){showToast('Set start and end time');return}
-  shifts[activeKey]=[{type:'shift',start,end}];saveShifts();buildRoster();buildOverview();closeSheet();
+  const ex=getShifts(activeKey);ex.push({type:'shift',category,start,end});shifts[activeKey]=ex;
+  saveShifts();buildRoster();buildOverview();renderExistingShifts();showToast('Shift added ✓');
 }
 function applyTraining(){
   if(!activeKey)return;
   const start=document.getElementById('trainStart').value,end=document.getElementById('trainEnd').value;
   if(!start||!end){showToast('Set start and end time');return}
-  shifts[activeKey]=[{type:'TRAINING',start,end}];saveShifts();buildRoster();buildOverview();closeSheet();
+  const ex=getShifts(activeKey);ex.push({type:'TRAINING',start,end});shifts[activeKey]=ex;
+  saveShifts();buildRoster();buildOverview();renderExistingShifts();showToast('Training added ✓');
 }
 function clearCell(){
   if(!activeKey)return;
@@ -484,7 +525,7 @@ function doPrint(){
     h+=`<tr><td class="name-col">${emp.name}</td>`;
     days.forEach(d=>{
       const sArr=getShifts(`${fd(d)}_${emp.id}`);
-      const v=sArr.length?sArr.map(s=>s.type==='shift'?fmt12(s.start)+'-'+fmt12(s.end):s.type==='TRAINING'?fmt12(s.start)+'-'+fmt12(s.end)+' TRN':s.type).join('<br>'):'';
+      const v=sArr.length?sArr.map(s=>s.type==='shift'?catLabel(s)+fmt12(s.start)+'-'+fmt12(s.end):s.type==='TRAINING'?fmt12(s.start)+'-'+fmt12(s.end)+' TRN':s.type).join('<br>'):'';
       h+=`<td>${v}</td>`;
     });
     h+='</tr>';
@@ -534,11 +575,11 @@ function savePDF(){
         days.forEach((d,ci)=>{
           const sArr=getShifts(`${fd(d)}_${emp.id}`);if(!sArr.length)return;
           const cx=mL+nW+ci*dW+dW/2;
-          const ofs=sArr.length===2?[-1.8,1.8]:[0];
+          const lh=3.4,ofs=sArr.map((_,si)=>(si-(sArr.length-1)/2)*lh);
           sArr.forEach((s,si)=>{
             doc.setFont('helvetica',s.type==='shift'?'bold':'normal');
             doc.setFontSize(s.type==='TRAINING'?4.5:5.5);
-            const txt=s.type==='shift'?fmt12(s.start)+'-'+fmt12(s.end):s.type==='TRAINING'?fmt12(s.start)+'-'+fmt12(s.end)+' TRN':s.type;
+            const txt=s.type==='shift'?catLabel(s)+fmt12(s.start)+'-'+fmt12(s.end):s.type==='TRAINING'?fmt12(s.start)+'-'+fmt12(s.end)+' TRN':s.type;
             doc.text(txt,cx,ry+rH*0.5+ofs[si],{align:'center'});
           });
         });
